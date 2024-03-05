@@ -1,0 +1,60 @@
+const int waterLevelPin = A0;
+const int soilMoisturePin = A1; 
+const int drySoilThreshold = 400;
+const int relay = 2;
+const int speaker = 4;
+const int red_light = 5;
+const int yellow_light = 6;
+const int blue_light = 7;
+const int empty_level = 100;
+const int half_start = 420;
+const int half_end = 500;
+int waterLevelValue = 0;
+void setup() {
+  pinMode(relay, OUTPUT);
+  pinMode(speaker, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(6, OUTPUT);
+  pinMode(7, OUTPUT);
+  Serial.begin(9600); 
+}
+
+void water_checker(int waterLevelValue){
+    digitalWrite(speaker, LOW);
+    digitalWrite(red_light, LOW);
+    digitalWrite(yellow_light, LOW);
+    digitalWrite(blue_light, LOW);
+    if (waterLevelValue < empty_level){ 
+        digitalWrite(speaker, HIGH); 
+    } else if (waterLevelValue >= half_start && waterLevelValue < half_end) {
+        digitalWrite(yellow_light, HIGH);
+    }else if (waterLevelValue >= half_end) { 
+        digitalWrite(blue_light, HIGH);
+    } else { 
+        digitalWrite(red_light, HIGH);
+    } 
+    delay(100);
+}
+
+void loop() {
+  int soilMoistureValue;
+
+  for (int i = 0; i < 5; i++) {
+    soilMoistureValue = analogRead(soilMoisturePin);
+    waterLevelValue = analogRead(waterLevelPin);
+    water_checker(waterLevelValue);
+
+    if (soilMoistureValue > drySoilThreshold && waterLevelValue > empty_level) {
+        digitalWrite(relay, LOW);
+        delay(5000); 
+        waterLevelValue = analogRead(waterLevelPin);
+        water_checker(waterLevelValue);
+    }
+  }
+  digitalWrite(relay, HIGH);
+  for (int i = 0; i < 120; i++) {
+    delay(1000);
+    waterLevelValue = analogRead(waterLevelPin);
+    water_checker(waterLevelValue);
+  }
+}
